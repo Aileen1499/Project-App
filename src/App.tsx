@@ -6,16 +6,22 @@ import Library from './components/Library';
 import ClozeTest from './components/ClozeTest';
 import Analytics from './components/Analytics';
 import Settings from './components/Settings';
-import { IconHome, IconBook, IconPencil, IconBarChart, IconSettings, IconSun, IconMoon, IconMonitor } from './components/shared';
+import WritingMode from './components/WritingMode';
+import FlashCard from './components/FlashCard';
+import Profile from './components/Profile';
+import { IconHome, IconBook, IconPencil, IconBarChart, IconSettings, IconSun, IconMoon, IconMonitor, IconEdit, IconLayers, IconUser } from './components/shared';
 import type { HskWord } from './data/hskMasterData';
 
-type Tab = 'home' | 'library' | 'cloze' | 'analytics';
+type Tab = 'home' | 'library' | 'cloze' | 'analytics' | 'writing' | 'flashcards' | 'profile';
 
 const TABS: { id: Tab; label: string; icon: (props: { size?: number; className?: string }) => React.ReactElement }[] = [
   { id: 'home', label: 'Study', icon: IconHome },
   { id: 'library', label: 'Library', icon: IconBook },
   { id: 'cloze', label: 'Cloze', icon: IconPencil },
   { id: 'analytics', label: 'Stats', icon: IconBarChart },
+  { id: 'writing', label: 'Write', icon: IconEdit },
+  { id: 'flashcards', label: 'Flash', icon: IconLayers },
+  { id: 'profile', label: 'Profile', icon: IconUser },
 ];
 
 export default function App() {
@@ -103,6 +109,27 @@ export default function App() {
         )}
         {activeTab === 'analytics' && (
           <Analytics srsCards={srsCards} />
+        )}
+        {activeTab === 'writing' && (
+          <WritingMode
+            selectedLevels={settings.selectedLevels}
+            speak={speak}
+          />
+        )}
+        {activeTab === 'flashcards' && (
+          <FlashCard
+            selectedLevels={settings.selectedLevels}
+            speak={speak}
+            reviewWord={reviewWord}
+            activeRecallMode={settings.blurMode !== 'none'}
+          />
+        )}
+        {activeTab === 'profile' && (
+          <Profile
+            settings={settings}
+            srsCards={srsCards}
+            getMasteryByLevel={getMasteryByLevel}
+          />
         )}
       </main>
 

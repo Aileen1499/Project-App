@@ -5,6 +5,8 @@ import {
   type SrsCard, type SrsQuality, type AppSettings,
   createSrsCard, computeSm2, getMasteryLevel,
   loadSrsData, saveSrsData, loadSettings, saveSettings, recordReview,
+  loadDailyStats, getStreakFromStats,
+  loadCustomWords, saveCustomWords, addCustomWord, removeCustomWord, type CustomWord,
 } from '../engine/srsEngine';
 
 // ─────────────────────────────────────────
@@ -86,7 +88,12 @@ export function useSrsSystem(selectedLevels: number[]) {
     return Object.values(srsCards).filter(c => c.lastReviewDate >= todayStart.getTime()).length;
   }, [srsCards]);
 
-  return { srsCards, getOrCreateCard, reviewWord, getMasteryByLevel, getDueWords, getTodayReviewCount };
+  // Get current and longest streak
+  const getStreak = useCallback((): { current: number; longest: number } => {
+    return getStreakFromStats(loadDailyStats());
+  }, []);
+
+  return { srsCards, getOrCreateCard, reviewWord, getMasteryByLevel, getDueWords, getTodayReviewCount, getStreak };
 }
 
 // ─────────────────────────────────────────
@@ -229,4 +236,44 @@ export function useClozeTest(selectedLevels: number[]) {
     answerQuestion,
     nextQuestion,
   };
+}
+
+// ─────────────────────────────────────────
+// useCustomWords
+// ─────────────────────────────────────────
+export function useCustomWords() {
+  const [customWords, setCustomWords] = useState<CustomWord[]>(loadCustomWords);
+
+  const addWord = useCallback((word: Omit<CustomWord, 'id' | 'createdAt'>) => {
+    const newWord = addCustomWord(word);
+    setCustomWords(loadCustomWords());
+    return newWord;
+  }, []);
+
+  const removeWord = useCallback((id: string) => {
+    removeCustomWord(id);
+    setCustomWords(loadCustomWords());
+  }, []);
+
+  return { customWords, addWord, removeWord };
+}
+
+// ─────────────────────────────────────────
+// useCustomWords
+// ─────────────────────────────────────────
+export function useCustomWords() {
+  const [customWords, setCustomWords] = useState<CustomWord[]>(loadCustomWords);
+
+  const addWord = useCallback((word: Omit<CustomWord, 'id' | 'createdAt'>) => {
+    const newWord = addCustomWord(word);
+    setCustomWords(loadCustomWords());
+    return newWord;
+  }, []);
+
+  const removeWord = useCallback((id: string) => {
+    removeCustomWord(id);
+    setCustomWords(loadCustomWords());
+  }, []);
+
+  return { customWords, addWord, removeWord };
 }

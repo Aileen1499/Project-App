@@ -135,6 +135,8 @@ export interface DailyStats {
   reviewed: number;
   correct: number;
   newLearned: number;
+  streak: number; // consecutive days with at least one review
+  longestStreak: number; // longest streak on record
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -216,15 +218,76 @@ export function loadDailyStats(): DailyStats[] {
 }
 
 /**
- * Record a review action in daily stats.
+ * Returns YYYY-MM-DD in local time.
+ */
+function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Compute the current and longest streak from persisted daily stats.
+ * A day counts toward the streak once at least one review is recorded.
+ */
+export function getStreakFromStats(stats: DailyStats[]): { current: number; longest: number } {
+  if (stats.length === 0) return { current: 0, longest: 0 };
+
+  const activeDays = new Set(stats.filter(s => s.reviewed > 0).map(s => s.date));
+  const sorted = [...activeDays].sort();
+
+  let longest = 0;
+  let run = 0;
+  let prev: Date | null = null;
+
+  for (const dateStr of sorted) {
+    const d = new Date(dateStr + 'T00:00:00');
+    if (prev && (d.getTime() - prev.getTime()) / 86400000 === 1) {
+      run += 1;
+    } else {
+      run = 1;
+    }
+    longest = Math.max(longest, run);
+    prev = d;
+  }
+
+  // Current streak must include today or yesterday to still be alive
+  const today = new Date();
+  const todayStr = localDateStr(today);
+  const yesterday = new Date(today.getTime() - 86400000);
+  const yesterdayStr = localDateStr(yesterday);
+
+  let current = 0;
+  if (activeDays.has(todayStr)) {
+    // Walk back from today
+    let d = today;
+    while (activeDays.has(localDateStr(d))) {
+      current += 1;
+      d = new Date(d.getTime() - 86400000);
+    }
+  } else if (activeDays.has(yesterdayStr)) {
+    // Streak still alive: walk back from yesterday
+    let d = yesterday;
+    while (activeDays.has(localDateStr(d))) {
+      current += 1;
+      d = new Date(d.getTime() - 86400000);
+    }
+  }
+
+  return { current, longest };
+}
+
+/**
+ * Record a review action in daily stats and update the streak.
  */
 export function recordReview(isCorrect: boolean, isNew: boolean): void {
   const stats = loadDailyStats();
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateStr(new Date());
   let todayStats = stats.find(s => s.date === today);
 
   if (!todayStats) {
-    todayStats = { date: today, reviewed: 0, correct: 0, newLearned: 0 };
+    todayStats = { date: today, reviewed: 0, correct: 0, newLearned: 0, streak: 0, longestStreak: 0 };
     stats.push(todayStats);
   }
 
@@ -232,10 +295,67 @@ export function recordReview(isCorrect: boolean, isNew: boolean): void {
   if (isCorrect) todayStats.correct += 1;
   if (isNew) todayStats.newLearned += 1;
 
-  // Keep only last 90 days
+  // Keep only last 90 days for storage, but compute streak on full history
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 90);
   const filtered = stats.filter(s => new Date(s.date) >= cutoff);
 
+  // Compute streak on full stats, persist only filtered
+  const { current, longest } = getStreakFromStats(stats);
+  for (const s of filtered) {
+    s.streak = current;
+    s.longestStreak = longest;
+  }
+
   saveDailyStats(filtered);
+}
+
+// ─────────────────────────────────────────────
+// CUSTOM WORDS
+// ─────────────────────────────────────────────
+
+const CUSTOM_WORDS_KEY = 'hanzi-daily-custom-words';
+
+export interface CustomWord {
+  id: string;
+  hanzi: string;
+  pinyin: string;
+  meaning: string;
+  meaningId: string;
+  level: number;
+  createdAt: number;
+}
+
+export function loadCustomWords(): CustomWord[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_WORDS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomWords(words: CustomWord[]): void {
+  try {
+    localStorage.setItem(CUSTOM_WORDS_KEY, JSON.stringify(words));
+  } catch (e) {
+    console.error('Failed to save custom words:', e);
+  }
+}
+
+export function addCustomWord(word: Omit<CustomWord, 'id' | 'createdAt'>): CustomWord {
+  const words = loadCustomWords();
+  const newWord: CustomWord = {
+    ...word,
+    id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: Date.now(),
+  };
+  words.push(newWord);
+  saveCustomWords(words);
+  return newWord;
+}
+
+export function removeCustomWord(id: string): void {
+  const words = loadCustomWords().filter(w => w.id !== id);
+  saveCustomWords(words);
 }
