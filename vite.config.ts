@@ -7,21 +7,38 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Hanzi Daily — Universal HSK Study',
-        short_name: 'Hanzi Daily',
-        description: 'Master Chinese characters from HSK 1-6 with spaced repetition, ambient learning, and cloze testing.',
+        name: 'Hanzigo — Daily Chinese Vocabulary',
+        short_name: 'Hanzigo',
+        description: 'Master Chinese vocabulary daily with lockscreen word cards, spaced repetition, and interactive learning.',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        categories: ['education', 'productivity', 'lifecycle'],
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+        ],
+        shortcuts: [
+          {
+            name: 'Daily Word',
+            short_name: 'Daily',
+            description: 'View today\'s Chinese word with pinyin and meaning',
+            url: '/?tab=daily',
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Study Now',
+            short_name: 'Study',
+            description: 'Continue your SRS review session',
+            url: '/',
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }]
+          }
         ]
       },
       workbox: {

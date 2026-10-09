@@ -257,23 +257,3 @@ export function useCustomWords() {
 
   return { customWords, addWord, removeWord };
 }
-
-// ─────────────────────────────────────────
-// useCustomWords
-// ─────────────────────────────────────────
-export function useCustomWords() {
-  const [customWords, setCustomWords] = useState<CustomWord[]>(loadCustomWords);
-
-  const addWord = useCallback((word: Omit<CustomWord, 'id' | 'createdAt'>) => {
-    const newWord = addCustomWord(word);
-    setCustomWords(loadCustomWords());
-    return newWord;
-  }, []);
-
-  const removeWord = useCallback((id: string) => {
-    removeCustomWord(id);
-    setCustomWords(loadCustomWords());
-  }, []);
-
-  return { customWords, addWord, removeWord };
-}

@@ -9,13 +9,15 @@ import Settings from './components/Settings';
 import WritingMode from './components/WritingMode';
 import FlashCard from './components/FlashCard';
 import Profile from './components/Profile';
-import { IconHome, IconBook, IconPencil, IconBarChart, IconSettings, IconSun, IconMoon, IconMonitor, IconEdit, IconLayers, IconUser } from './components/shared';
+import DailyWordPage from './components/DailyWordPage';
+import { IconHome, IconBook, IconPencil, IconBarChart, IconSettings, IconSun, IconMoon, IconMonitor, IconEdit, IconLayers, IconUser, IconClock } from './components/shared';
 import type { HskWord } from './data/hskMasterData';
 
-type Tab = 'home' | 'library' | 'cloze' | 'analytics' | 'writing' | 'flashcards' | 'profile';
+type Tab = 'home' | 'daily' | 'library' | 'cloze' | 'analytics' | 'writing' | 'flashcards' | 'profile';
 
 const TABS: { id: Tab; label: string; icon: (props: { size?: number; className?: string }) => React.ReactElement }[] = [
   { id: 'home', label: 'Study', icon: IconHome },
+  { id: 'daily', label: 'Daily', icon: IconClock },
   { id: 'library', label: 'Library', icon: IconBook },
   { id: 'cloze', label: 'Cloze', icon: IconPencil },
   { id: 'analytics', label: 'Stats', icon: IconBarChart },
@@ -26,11 +28,16 @@ const TABS: { id: Tab; label: string; icon: (props: { size?: number; className?:
 
 export default function App() {
   const { settings, updateSettings } = useAppSettings();
-  const { srsCards, getOrCreateCard, reviewWord, getDueWords, getTodayReviewCount } = useSrsSystem(settings.selectedLevels);
+  const { srsCards, getOrCreateCard, reviewWord, getDueWords, getTodayReviewCount, getMasteryByLevel } = useSrsSystem(settings.selectedLevels);
   const { speak } = useSpeech();
   const cloze = useClozeTest(settings.selectedLevels);
 
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const initialTab = (() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return (TABS.some(tab => tab.id === t) ? t : 'home') as Tab;
+  })();
+
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [showSettings, setShowSettings] = useState(false);
   const [ambientWord, setAmbientWord] = useState<HskWord | null>(null);
 
@@ -50,7 +57,7 @@ export default function App() {
       <header className="sticky top-0 z-50 glass-card border-b border-white/5 safe-top">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold gradient-text font-display">Hanzi Daily</span>
+            <span className="text-2xl font-bold gradient-text font-display">Hanzigo</span>
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -84,6 +91,12 @@ export default function App() {
             reviewWord={reviewWord}
             getDueWords={getDueWords}
             getTodayReviewCount={getTodayReviewCount}
+            speak={speak}
+          />
+        )}
+        {activeTab === 'daily' && (
+          <DailyWordPage
+            selectedLevels={settings.selectedLevels}
             speak={speak}
           />
         )}
