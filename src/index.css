@@ -12,8 +12,8 @@
   }
 
   .light {
-    --glass-bg: rgba(0, 0, 0, 0.03);
-    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(226, 232, 240, 0.9);
     color-scheme: light;
   }
 
@@ -29,12 +29,12 @@
 
   body {
     @apply bg-slate-950 text-slate-100 font-sans transition-colors duration-300;
-    overscroll-behavior: none;
   }
 
   .light body,
+  html.light body,
   body.light-mode {
-    @apply bg-gray-50 text-slate-900;
+    @apply bg-slate-100 text-slate-900;
   }
 
   ::selection {
@@ -59,15 +59,15 @@
   }
 
   .light .glass-card {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
   }
 
   .light .glass-card-elevated {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
   }
 
   .gradient-text {
@@ -95,7 +95,11 @@
   }
 
   .light .btn-ghost {
-    @apply text-slate-600 hover:text-slate-900 hover:bg-slate-100;
+    color: #475569;
+  }
+  .light .btn-ghost:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
   }
 
   .progress-ring {
@@ -156,7 +160,11 @@
   }
 
   .light .nav-pill:not(.active) {
-    @apply text-slate-500 hover:text-slate-700 hover:bg-slate-100;
+    color: #64748b;
+  }
+  .light .nav-pill:not(.active):hover {
+    color: #334155;
+    background-color: #f1f5f9;
   }
 
   /* HSK Level Badge Colors */
@@ -197,3 +205,45 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Light mode high-contrast typography & container styling */
+html.light .glass-card,
+html.light .glass-card-elevated {
+  color: #0f172a;
+}
+
+html.light .glass-card .text-slate-400,
+html.light .glass-card-elevated .text-slate-400 {
+  color: #475569;
+}
+
+html.light .glass-card .text-slate-500,
+html.light .glass-card-elevated .text-slate-500 {
+  color: #64748b;
+}
+
+html.light .glass-card .text-slate-300,
+html.light .glass-card-elevated .text-slate-300 {
+  color: #1e293b;
+}
+
+html.light .glass-card .text-slate-200,
+html.light .glass-card-elevated .text-slate-200 {
+  color: #0f172a;
+}
+
+html.light .border-white\/5,
+html.light .border-white\/10 {
+  border-color: rgba(203, 213, 225, 0.7);
+}
+
+html.light .bg-white\/5,
+html.light .bg-white\/10 {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+
+html.light .ambient-glow::before {
+  display: none;
+}
+
+

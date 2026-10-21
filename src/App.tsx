@@ -52,7 +52,7 @@ export default function App() {
   const ThemeIcon = settings.theme === 'light' ? IconSun : settings.theme === 'dark' ? IconMoon : IconMonitor;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300">
       {/* ─── Top Bar ─── */}
       <header className="sticky top-0 z-50 glass-card border-b border-white/5 safe-top">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
@@ -82,7 +82,7 @@ export default function App() {
       </header>
 
       {/* ─── Main Content ─── */}
-      <main className="max-w-lg mx-auto px-4 pb-24 pt-4 safe-bottom">
+      <main className="max-w-lg mx-auto px-4 pb-36 pt-4 safe-bottom">
         {activeTab === 'home' && (
           <HomeDashboard
             settings={settings}

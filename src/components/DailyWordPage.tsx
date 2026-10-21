@@ -45,6 +45,120 @@ export default function DailyWordPage({ selectedLevels, speak }: DailyWordPagePr
     return arr;
   }, [dailyWord, shuffleKey]);
 
+  const downloadWallpaper = () => {
+    if (!dailyWord) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background Gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, 1920);
+    bgGrad.addColorStop(0, '#0a0f1d');
+    bgGrad.addColorStop(0.5, '#0f172a');
+    bgGrad.addColorStop(1, '#1e1b4b');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Subtle Radial Glow behind Hanzi
+    const radGlow = ctx.createRadialGradient(540, 800, 20, 540, 800, 450);
+    radGlow.addColorStop(0, 'rgba(99, 102, 241, 0.28)');
+    radGlow.addColorStop(0.5, 'rgba(168, 85, 247, 0.12)');
+    radGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = radGlow;
+    ctx.fillRect(0, 350, 1080, 900);
+
+    // Header Date & Subtitle
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#818cf8';
+    ctx.font = '600 32px sans-serif';
+    ctx.fillText('HANZIGO • KATA MANDARIN HARI INI', 540, 360);
+
+    const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '400 28px sans-serif';
+    ctx.fillText(dateStr, 540, 415);
+
+    // HSK Badge Pill
+    const badgeText = `HSK ${dailyWord.level}`;
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.25)';
+    ctx.beginPath();
+    ctx.roundRect(440, 460, 200, 56, 28);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(129, 140, 248, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#a5b4fc';
+    ctx.font = '700 26px sans-serif';
+    ctx.fillText(badgeText, 540, 498);
+
+    // Main Hanzi
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 260px "Noto Sans SC", sans-serif';
+    ctx.shadowColor = 'rgba(129, 140, 248, 0.5)';
+    ctx.shadowBlur = 40;
+    ctx.fillText(dailyWord.hanzi, 540, 820);
+    ctx.shadowBlur = 0; // reset
+
+    // Pinyin
+    ctx.fillStyle = '#c084fc';
+    ctx.font = '600 64px sans-serif';
+    ctx.fillText(dailyWord.pinyin, 540, 930);
+
+    // Meaning (Indonesian)
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '500 48px sans-serif';
+    ctx.fillText(dailyWord.meaningId || dailyWord.meaning, 540, 1010);
+
+    if (dailyWord.meaning && dailyWord.meaningId && dailyWord.meaning !== dailyWord.meaningId) {
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '400 32px sans-serif';
+      ctx.fillText(dailyWord.meaning, 540, 1070);
+    }
+
+    // Sentence Card Box
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.beginPath();
+    ctx.roundRect(100, 1170, 880, 360, 32);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#6366f1';
+    ctx.font = '700 24px sans-serif';
+    ctx.fillText('CONTOH KALIMAT', 540, 1235);
+
+    const sentence = dailyWord.sentences && dailyWord.sentences[0]
+      ? dailyWord.sentences[0]
+      : { zh: `这是“${dailyWord.hanzi}”。`, pinyin: `Zhè shì "${dailyWord.pinyin}".`, id: `Ini adalah "${dailyWord.meaningId}".` };
+
+    ctx.fillStyle = '#f1f5f9';
+    ctx.font = '500 44px "Noto Sans SC", sans-serif';
+    ctx.fillText(sentence.zh, 540, 1315);
+
+    ctx.fillStyle = '#818cf8';
+    ctx.font = '400 32px sans-serif';
+    ctx.fillText(sentence.pinyin, 540, 1380);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '400 30px sans-serif';
+    ctx.fillText(sentence.id, 540, 1445);
+
+    // Watermark footer
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.font = '400 24px sans-serif';
+    ctx.fillText('Hanzigo • Lockscreen Word Card', 540, 1780);
+
+    // Download Image
+    const link = document.createElement('a');
+    link.download = `hanzigo-lockscreen-${dailyWord.hanzi}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
   if (!dailyWord) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
@@ -127,6 +241,30 @@ export default function DailyWordPage({ selectedLevels, speak }: DailyWordPagePr
         <p className="font-hanzi text-lg text-slate-200">{dailyWord.sentences[0].zh}</p>
         <p className="text-sm text-indigo-300">{dailyWord.sentences[0].pinyin}</p>
         <p className="text-sm text-slate-400">{dailyWord.sentences[0].id}</p>
+      </div>
+
+      {/* Lockscreen Wallpaper Download Button */}
+      <button
+        id="btn-download-lockscreen"
+        onClick={downloadWallpaper}
+        className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all cursor-pointer"
+      >
+        <span className="text-lg">📱</span>
+        <span className="font-semibold text-sm">Download Wallpaper Lockscreen (HD)</span>
+      </button>
+
+      {/* Mobile & Lockscreen Tip */}
+      <div className="glass-card rounded-2xl p-4 text-xs space-y-2 border border-indigo-500/20">
+        <div className="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
+          <span>✨</span>
+          <span>Tips Akses di HP (Lockscreen & App)</span>
+        </div>
+        <p className="text-slate-400 leading-relaxed">
+          1. <strong>Muncul di Lockscreen HP:</strong> Download gambar di atas, lalu atur sebagai <em>Wallpaper Layar Kunci (Lock Screen)</em> di galeri HP kamu.
+        </p>
+        <p className="text-slate-400 leading-relaxed">
+          2. <strong>Buka Seperti Aplikasi:</strong> Di browser HP (Safari iOS atau Chrome Android), tekan tombol <strong>Bagikan (Share)</strong> lalu pilih <strong>"Tambahkan ke Layar Utama" (Add to Home Screen)</strong>.
+        </p>
       </div>
     </div>
   );
