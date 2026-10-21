@@ -5,6 +5,7 @@ import type { SrsQuality, AppSettings } from '../engine/srsEngine';
 import { SRS_LABELS, getMasteryLevel } from '../engine/srsEngine';
 import type { SrsCard } from '../engine/srsEngine';
 import { HskBadge, IconVolume, IconRefresh, IconEye, IconEyeOff } from './shared';
+import BatchStudyMode from './BatchStudyMode';
 
 interface HomeDashboardProps {
   settings: AppSettings;
@@ -25,6 +26,7 @@ export default function HomeDashboard({
   getTodayReviewCount,
   speak,
 }: HomeDashboardProps) {
+  const [studyMode, setStudyMode] = useState<'batch' | 'srs'>('batch');
   const [currentWord, setCurrentWord] = useState<HskWord | null>(null);
   const [blurStates, setBlurStates] = useState({ hanzi: false, pinyin: false, meaning: false });
   const [showDetails, setShowDetails] = useState(false);
@@ -99,8 +101,44 @@ export default function HomeDashboard({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Stats Bar */}
-      <div className="flex items-center justify-between">
+      {/* Study Mode Selector Pill Toggle */}
+      <div className="flex p-1 rounded-2xl glass-card bg-black/10 dark:bg-white/5 border border-white/5">
+        <button
+          id="btn-mode-batch"
+          onClick={() => setStudyMode('batch')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+            studyMode === 'batch'
+              ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <span>📖</span>
+          <span>Unit & Cerita (Batch 10 Kata)</span>
+        </button>
+        <button
+          id="btn-mode-srs"
+          onClick={() => setStudyMode('srs')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+            studyMode === 'srs'
+              ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <span>⚡</span>
+          <span>Review SRS Acak</span>
+        </button>
+      </div>
+
+      {studyMode === 'batch' ? (
+        <BatchStudyMode
+          initialLevel={settings.selectedLevels[0] || 1}
+          speak={speak}
+          showIndonesian={settings.showIndonesian}
+        />
+      ) : (
+        <>
+          {/* Stats Bar */}
+          <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="glass-card rounded-xl px-3 py-1.5 text-sm">
             <span className="text-slate-400">Due: </span>
@@ -305,6 +343,8 @@ export default function HomeDashboard({
             ))}
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
