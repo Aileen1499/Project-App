@@ -15,6 +15,17 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
   const [filterLevel, setFilterLevel] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [displayLimit, setDisplayLimit] = useState(60);
+
+  const handleLevelChange = (lvl: number | null) => {
+    setFilterLevel(lvl);
+    setDisplayLimit(60);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setDisplayLimit(60);
+  };
 
   const filteredWords = useMemo(() => {
     let words = hskMasterData;
@@ -25,10 +36,10 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
       const q = searchQuery.trim().toLowerCase();
       words = words.filter(w =>
         w.hanzi.includes(q) ||
-        w.traditional.includes(q) ||
+        (w.traditional && w.traditional.includes(q)) ||
         w.pinyin.toLowerCase().includes(q) ||
         w.meaning.toLowerCase().includes(q) ||
-        w.meaningId.toLowerCase().includes(q)
+        (w.meaningId && w.meaningId.toLowerCase().includes(q))
       );
     }
     return words;
@@ -54,7 +65,7 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
           type="text"
           placeholder="Search hanzi, pinyin, or meaning..."
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={e => handleSearchChange(e.target.value)}
           className="w-full pl-11 pr-4 py-3 rounded-2xl glass-card bg-transparent border-0 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
         />
       </div>
@@ -62,7 +73,7 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
       {/* Level Filter Pills */}
       <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
         <button
-          onClick={() => setFilterLevel(null)}
+          onClick={() => handleLevelChange(null)}
           className={`nav-pill whitespace-nowrap flex-shrink-0 ${filterLevel === null ? 'active' : ''}`}
         >
           All ({hskMasterData.length})
@@ -70,7 +81,7 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
         {HSK_LEVELS.map(l => (
           <button
             key={l.level}
-            onClick={() => setFilterLevel(filterLevel === l.level ? null : l.level)}
+            onClick={() => handleLevelChange(filterLevel === l.level ? null : l.level)}
             className={`nav-pill whitespace-nowrap flex-shrink-0 ${filterLevel === l.level ? 'active' : ''}`}
           >
             HSK {l.level} ({levelCounts[l.level] || 0})
@@ -79,13 +90,16 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
       </div>
 
       {/* Word Count */}
-      <div className="text-sm text-slate-500">
-        Showing {filteredWords.length} word{filteredWords.length !== 1 ? 's' : ''}
+      <div className="text-sm text-slate-500 flex items-center justify-between">
+        <span>Showing {Math.min(filteredWords.length, displayLimit)} of {filteredWords.length} words</span>
+        {displayLimit < filteredWords.length && (
+          <span className="text-xs text-indigo-400 font-medium">HSK 3.0 Complete</span>
+        )}
       </div>
 
       {/* Word List */}
       <div className="space-y-2">
-        {filteredWords.map(word => (
+        {filteredWords.slice(0, displayLimit).map(word => (
           <WordCard
             key={word.id}
             word={word}
@@ -97,6 +111,17 @@ export default function Library({ srsCards, speak, showIndonesian }: LibraryProp
           />
         ))}
       </div>
+
+      {filteredWords.length > displayLimit && (
+        <div className="pt-2 text-center">
+          <button
+            onClick={() => setDisplayLimit(prev => prev + 60)}
+            className="w-full py-3.5 px-4 rounded-2xl glass-card font-medium text-sm text-indigo-300 hover:text-white hover:bg-white/10 active:scale-[0.98] transition-all border border-indigo-500/20"
+          >
+            Tampilkan Lebih Banyak (+60) — Masih ada {filteredWords.length - displayLimit} kosakata
+          </button>
+        </div>
+      )}
 
       {filteredWords.length === 0 && (
         <div className="text-center py-12">

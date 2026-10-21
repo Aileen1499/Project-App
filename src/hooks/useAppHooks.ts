@@ -183,8 +183,11 @@ export function useClozeTest(selectedLevels: number[]) {
     const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, count);
 
     const qs: ClozeQuestion[] = shuffled.map(word => {
-      const sentenceIdx = Math.random() > 0.5 ? 1 : 0;
-      const sentence = word.sentences[sentenceIdx];
+      const sentences = word.sentences && word.sentences.length > 0
+        ? word.sentences
+        : [{ zh: `这是“${word.hanzi}”。`, pinyin: `Zhè shì "${word.pinyin}".`, en: `This is "${word.meaning}".`, id: `Ini adalah "${word.meaningId || word.meaning}".` }];
+      const sentenceIdx = Math.floor(Math.random() * sentences.length);
+      const sentence = sentences[sentenceIdx];
       const blanked = sentence.zh.replace(word.hanzi, '______');
 
       // Generate distractors from same level
